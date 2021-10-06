@@ -1,0 +1,30 @@
+version: "2.1"
+services:
+  calibre-web:
+    image: ghcr.io/linuxserver/calibre-web
+    container_name: calibre-web
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Shanghai
+      - DOCKER_MODS=linuxserver/calibre-web:calibre #optional
+      - OAUTHLIB_RELAX_TOKEN_SCOPE=1 #optional
+    volumes:
+      - calibre_config:/config
+      - /books:/books
+    ports:
+      - 8083:8083
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.whoami.rule=Host(`calibre.indexown.com`)"
+      - "traefik.http.routers.whoami.entrypoints=web"
+
+# 使用已存在的 traefik 的 network
+networks:
+  default:
+    external:
+      name: traefik_default
+    
+volumes:
+    calibre_config:

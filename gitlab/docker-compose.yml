@@ -1,0 +1,68 @@
+version: '3.5'
+services:
+  gitlab:
+    image: gitlab/gitlab-ce:latest
+    hostname: 192.168.3.15
+    restart: unless-stopped
+    ports:
+      - "4080:4080"
+      - "4022:22"
+    volumes:
+      - /etc/localtime:/etc/localtime
+      - gitlab_config:/etc/gitlab
+      - gitlab_data:/var/opt/gitlab
+      - gitlab_logs:/var/log/gitlab
+      - gitlab_backup:/data/gitlab-backup
+    networks:
+      - gitlab
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+      
+        external_url 'http://192.168.3.15:4080'
+        gitlab_rails['gitlab_shell_ssh_port'] = 4022
+        nginx['listen_port'] = 4080
+        gitlab_rails['backup_path'] = "/data/gitlab-backup"
+        gitlab_rails['backup_keep_time'] = 1296000
+        gitlab_rails['time_zone'] = 'Asia/Shanghai'
+        gitlab_rails['backup_archive_permissions'] = 0644
+        
+#        unicorn['worker_timeout'] = 60
+#        unicorn['worker_processes'] = 5
+#        unicorn['worker_memory_limit_min'] = "200 * 1 << 20"
+#        unicorn['worker_memory_limit_max'] = "300 * 1 << 20"
+#        sidekiq['concurrency'] = 10
+#        postgresql['max_worker_processes'] = 8
+#        postgresql['shared_buffers'] = "256MB"
+#        nginx['enable'] = true
+#        nginx['client_max_body_size'] = '10240m'
+#        nginx['redirect_http_to_https'] = true
+#        nginx['ssl_certificate'] = "/etc/gitlab/ssl/fullchain.cer"
+#        nginx['ssl_certificate_key'] = "/etc/gitlab/ssl/git.xxxx.com.key"
+#        nginx['ssl_ciphers'] = "ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256"
+#        nginx['ssl_prefer_server_ciphers'] = "on"
+#        nginx['ssl_protocols'] = "TLSv1.1 TLSv1.2"
+#        nginx['ssl_session_cache'] = "builtin:1000  shared:SSL:10m"
+#        nginx['listen_addresses'] = ["0.0.0.0"]
+#        nginx['http2_enabled'] = true
+    mem_limit: 4096m
+
+  gitlab-runner:
+    image: gitlab/gitlab-runner:alpine
+    restart: unless-stopped
+    depends_on:
+      - gitlab
+    volumes:
+      - gitlab_runner:/etc/gitlab-runner
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - gitlab
+      
+networks:
+  gitlab:
+volumes:
+  gitlab_config:
+  gitlab_data:
+  gitlab_logs:
+  gitlab_runner:
+  gitlab_sock:
+  gitlab_backup:

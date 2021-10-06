@@ -1,0 +1,16 @@
+version: '3.3'
+services:
+    code-server:
+        container_name: code-server
+        ports:
+            - '9080:8080'
+        user: root
+        volumes:
+            - codeserver_config:/home/coder/.config
+            - codeserver_PWD:/home/coder/project
+        environment:
+            - DOCKER_USER=$USER
+        image: 'codercom/code-server:latest'
+volumes:
+    codeserver_config:
+    codeserver_PWD:
